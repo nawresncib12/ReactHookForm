@@ -1,3 +1,4 @@
+import { getUsers } from "@/api/users.api";
 import React from "react";
 import { useForm } from "react-hook-form";
 import Friends from "./Friends.component";
@@ -9,7 +10,7 @@ interface User {
   courses: string[];
   level: string;
 }
-const Form = () => {
+const Form = ({ setUsers }: any) => {
   const defaults: User = {
     firstName: "",
     lastName: "",
@@ -19,6 +20,7 @@ const Form = () => {
     level: "",
   };
   const {
+    setError,
     getValues,
     reset,
     setValue,
@@ -57,7 +59,37 @@ const Form = () => {
     //trigger() whole form
     trigger("firstName", { shouldFocus: true });
   };
-  const fakeErrors = () => {};
+  const fakeErrors = () => {
+    setError("firstName", { message: "bad firstname" }, { shouldFocus: true });
+  };
+  const onSubmit = (data: User, event: any) => {
+    if (data.firstName == "nawress") {
+      setError(
+        "firstName",
+        { message: "nawress is a bad firstname" },
+        { shouldFocus: true }
+      );
+      return;
+    }
+    // let x = Math.random();
+    // console.log(x);
+    // if (x < 0.5) {
+    //   throw new Error("401 invalid credentials");
+    // }
+    getUsers()
+      .then((data: any) => {
+        if (data) setUsers(data);
+        console.log("submitted");
+      })
+      .catch((e: Error) => {
+        console.log("HERE I LOGGED an error", e);
+        return;
+      });
+  };
+
+  const onError = () => {
+    console.log("Errors stopped the submit");
+  };
   React.useEffect(() => {
     //we reset only here cause if we reset in the onsubmit function
     //sometimes it reset before submit cause it's async
@@ -67,9 +99,14 @@ const Form = () => {
   }, [formState, reset]);
   return (
     <form
-      onSubmit={handleSubmit((data) => {
-        console.log(data);
-      })}
+      onSubmit={(e) =>
+        handleSubmit(
+          onSubmit,
+          onError
+        )(e).catch((e) => {
+          console.log("Error HAPPENED OUT", e);
+        })
+      }
       className="flex gap-20"
     >
       <div className="flex flex-col gap-5">
